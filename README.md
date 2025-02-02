@@ -16,13 +16,18 @@
 
 ## 使用方法
 
-1. 确保已关闭 Cursor IDE
-2. 以管理员身份打开 PowerShell
-3. 复制粘贴执行以下命令：
+⚠️ 为避免新账号立即失效，请严格按照以下步骤操作：
 
-```powershell
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass; iwr -Uri "https://raw.githubusercontent.com/hamflx/cursor-reset/refs/heads/main/reset.ps1" -UseBasicParsing | iex
-```
+1. 在 Cursor IDE 中退出当前登录的账号
+2. 完全关闭 Cursor IDE
+3. 以管理员身份打开 PowerShell
+4. 复制粘贴执行以下命令：
+
+   ```powershell
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass; iwr -Uri "https://raw.githubusercontent.com/hamflx/cursor-reset/refs/heads/main/reset.ps1" -UseBasicParsing | iex
+   ```
+
+5. 重置完成后打开 Cursor IDE，使用新的账号登录（不要使用之前的账号）
 
 如果脚本卡在"正在等待 Cursor 进程退出..."，可以在管理员权限的命令行中执行以下命令强制结束所有 Cursor 进程：
 
@@ -72,13 +77,18 @@ If you value Cursor, please support the official version and pay for the develop
 
 ## Usage
 
-1. Make sure Cursor IDE is closed
-2. Open PowerShell as Administrator
-3. Copy and paste the following command:
+⚠️ To prevent the new account from being immediately invalidated, please follow these steps strictly:
 
-```powershell
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass; iwr -Uri "https://raw.githubusercontent.com/hamflx/cursor-reset/refs/heads/main/reset.ps1" -UseBasicParsing | iex
-```
+1. Sign out of your current account in Cursor IDE
+2. Completely close Cursor IDE
+3. Open PowerShell as Administrator
+4. Copy and paste the following command:
+
+   ```powershell
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass; iwr -Uri "https://raw.githubusercontent.com/hamflx/cursor-reset/refs/heads/main/reset.ps1" -UseBasicParsing | iex
+   ```
+
+5. After reset is complete, open Cursor IDE and sign in with a new account (do not use the previous account)
 
 If the script is stuck at "Waiting for Cursor process to exit...", you can force kill all Cursor processes by running the following command in an administrator command prompt:
 
