@@ -32,6 +32,9 @@ if ($cursorProcesses) {
     Write-Host "检测到 Cursor 正在运行。请关闭 Cursor 后继续..."
     Write-Host "正在等待 Cursor 进程退出..."
     
+    # Force stop all Cursor processes
+    Stop-Process -Name "cursor" -Force -ErrorAction SilentlyContinue
+    
     while ($true) {
         $cursorProcesses = Get-Process "cursor" -ErrorAction SilentlyContinue
         if (-not $cursorProcesses) {
@@ -68,27 +71,60 @@ $newDevDeviceId = [guid]::NewGuid().ToString()
 $newSqmId = "{$([guid]::NewGuid().ToString().ToUpper())}"
 
 if (Test-Path $storageJsonPath) {
-    # 保存原始文件属性
-    $originalAttributes = (Get-ItemProperty $storageJsonPath).Attributes
+    # 创建备份
+    $backupDir = Join-Path $HOME "storage_json_backups"
+    if (-not (Test-Path $backupDir)) {
+        New-Item -ItemType Directory -Path $backupDir | Out-Null
+    }
+    $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
+    $storageBackupPath = Join-Path $backupDir "storage_$timestamp.json"
+    Copy-Item -Path $storageJsonPath -Destination $storageBackupPath -Force
+
+    try {
+		# 设置为普通属性
+		$file = Get-Item $storageJsonPath
+		$file.Attributes = $file.Attributes -band (-bnot [System.IO.FileAttributes]::ReadOnly)
+
+        # 读取并解析 JSON
+        $jsonContent = Get-Content $storageJsonPath -Raw | ConvertFrom-Json
+        
+        # 只更新存在的字段
+        if ($jsonContent.PSObject.Properties["telemetry.machineId"]) {
+            $jsonContent."telemetry.machineId" = $newMachineId
+        }
+        if ($jsonContent.PSObject.Properties["telemetry.macMachineId"]) {
+            $jsonContent."telemetry.macMachineId" = $newMacMachineId
+        }
+        if ($jsonContent.PSObject.Properties["telemetry.devDeviceId"]) {
+            $jsonContent."telemetry.devDeviceId" = $newDevDeviceId
+        }
+        if ($jsonContent.PSObject.Properties["telemetry.sqmId"]) {
+            $jsonContent."telemetry.sqmId" = $newSqmId
+        }
+        
+        # 保存修改后的 JSON，保持原有格式和编码
+        $jsonContent | ConvertTo-Json -Depth 10 | Out-File $storageJsonPath -Encoding UTF8
     
-    # 移除只读属性
-    Set-ItemProperty $storageJsonPath -Name IsReadOnly -Value $false
-    
-    # 更新文件内容
-    $jsonContent = Get-Content $storageJsonPath -Raw
-    $ser = New-Object System.Web.Script.Serialization.JavaScriptSerializer
-    $data = $ser.DeserializeObject($jsonContent)
-    
-    $data["telemetry.machineId"] = $newMachineId
-    $data["telemetry.macMachineId"] = $newMacMachineId
-    $data["telemetry.devDeviceId"] = $newDevDeviceId
-    $data["telemetry.sqmId"] = $newSqmId
-    
-    $newJson = $ser.Serialize($data)
-    $newJson | Out-File $storageJsonPath -Encoding UTF8
-    
-    # 恢复原始文件属性
-    Set-ItemProperty $storageJsonPath -Name Attributes -Value $originalAttributes
+        # 强制设置只读属性
+        $file = Get-Item $storageJsonPath
+        $file.Attributes = $file.Attributes -bor [System.IO.FileAttributes]::ReadOnly
+        
+        Write-Host "storage.json 更新成功并设置为只读!"
+        Write-Host "备份文件保存在: $storageBackupPath"
+        
+        # 验证只读属性
+        $finalAttributes = (Get-Item $storageJsonPath).Attributes
+        if ($finalAttributes.HasFlag([System.IO.FileAttributes]::ReadOnly)) {
+            Write-Host "只读属性设置成功"
+        } else {
+            Write-Host "警告：只读属性设置失败"
+        }
+    }
+    catch {
+        Write-Host "错误: storage.json 解析失败，正在恢复备份..."
+        Copy-Item -Path $storageBackupPath -Destination $storageJsonPath -Force
+        Write-Host "已从备份恢复: $storageBackupPath"
+    }
 }
 
 # 更新注册表 MachineGuid

@@ -28,7 +28,7 @@
 4. 复制粘贴执行以下命令：
 
    ```powershell
-   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass; iwr -Uri "https://raw.githubusercontent.com/hamflx/cursor-reset/refs/heads/main/reset.ps1" -UseBasicParsing | iex
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass; iwr -Uri "https://raw.githubusercontent.com/reidentify/cursor-reset/refs/heads/main/reset.ps1" -UseBasicParsing | iex
    ```
 
 5. 重置完成后打开 Cursor IDE，使用新的账号登录（不要使用之前的账号）
